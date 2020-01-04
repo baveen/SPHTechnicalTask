@@ -13,6 +13,13 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
+        UsageViewModel().getDataUsage(offset: 20) { (response, error) in
+            if let data = response {
+                print(data)
+            } else {
+                print(error ?? "")
+            }
+        }
     }
 
 
