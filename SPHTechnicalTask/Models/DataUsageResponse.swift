@@ -32,7 +32,14 @@ struct Field: Codable {
 }
 
 // MARK: - Record
-struct Record: Codable {
+struct Record: Codable, Comparable {
+    static func < (lhs: Record, rhs: Record) -> Bool {
+        if let volume1 = lhs.dataVolume, let value1 = Double(volume1), let volume2 = rhs.dataVolume, let value2 = Double(volume2) {
+            return value1 < value2
+        }
+        return false
+    }
+    
     let dataVolume : String?
     let quarter : String?
     let id : Int?

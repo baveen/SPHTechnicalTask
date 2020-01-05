@@ -10,9 +10,9 @@ import Foundation
 
 typealias ApiResponseCallBack = ((DataUsageApiResponse?, _ error: String?) -> Void)
 
-enum NetworkResponse:String {
+enum NetworkResponse: String {
     case success
-    case authenticationError = "You need to be authenticated first."
+    case authenticationError = "Server Error"
     case badRequest = "Bad request"
     case outdated = "The url you requested is outdated."
     case failed = "Network request failed."
@@ -26,25 +26,26 @@ enum Result<String>{
 }
 
 class APIClient {
-    
-    static let baseUrl = "https://data.gov.sg/api/action/datastore_search?resource_id=a807b7ab-6cad-4aa6-87d0-e283a7353a0f"
-    
-    static func fetchUsedMobileData(pageOffset: Int, callBack: @escaping ApiResponseCallBack) {
-        let url = APIClient.baseUrl.appending("&limit=\(pageOffset)")
+    let baseUrl = "https://data.gov.sg"
+    static let shared = APIClient()
+    private init() { }
+        
+    func fetchUsedMobileData(nextUrl: String, callBack: @escaping ApiResponseCallBack) {
+        let url = baseUrl+nextUrl
         let request = NSMutableURLRequest(url: NSURL(string: url)! as URL,
                                           cachePolicy: .useProtocolCachePolicy,
-                                          timeoutInterval: 30.0)
+                                          timeoutInterval: 60.0)
         request.httpMethod = "GET"
-        
+    
         let session = URLSession.shared
-        let dataTask = session.dataTask(with: request as URLRequest, completionHandler: { (data, urlResponse, error) in
+        let dataTask = session.dataTask(with: request as URLRequest, completionHandler: {[weak self] (data, urlResponse, error) in
             
             if error != nil {
                 callBack(nil, "Please check your network connection.")
+                return
             }
         
-            if let response = urlResponse as? HTTPURLResponse {
-                let result = handleNetworkResponse(response)
+            if let response = urlResponse as? HTTPURLResponse, let result = self?.handleNetworkResponse(response) {
                 switch result {
                 case .success:
                     guard let responseData = data else {
@@ -66,14 +67,14 @@ class APIClient {
         dataTask.resume()
     }
     
-    static func handleNetworkResponse(_ response: HTTPURLResponse) -> Result<String> {
+    func handleNetworkResponse(_ response: HTTPURLResponse) -> Result<String> {
         switch response.statusCode {
-        case 200...299:
+        case 200:
             return .success
         case 401...500:
-            return .failure(NetworkResponse.authenticationError.rawValue)
-        case 501...599:
             return .failure(NetworkResponse.badRequest.rawValue)
+        case 501...599:
+            return .failure(NetworkResponse.authenticationError.rawValue)
         case 600:
             return .failure(NetworkResponse.outdated.rawValue)
         default:
