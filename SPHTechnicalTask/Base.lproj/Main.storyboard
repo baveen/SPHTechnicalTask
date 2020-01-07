@@ -27,6 +27,11 @@
                                     <size key="footerReferenceSize" width="0.0" height="0.0"/>
                                     <inset key="sectionInset" minX="0.0" minY="0.0" maxX="0.0" maxY="0.0"/>
                                 </collectionViewFlowLayout>
+                                <activityIndicatorView key="backgroundView" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" style="large" id="hQt-57-n6P">
+                                    <rect key="frame" x="0.0" y="-49" width="414" height="818"/>
+                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                    <color key="color" systemColor="systemIndigoColor" red="0.34509803921568627" green="0.33725490196078434" blue="0.83921568627450982" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                </activityIndicatorView>
                                 <cells>
                                     <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="AnnualRecordCellIdentifier" id="Gol-3I-k66" customClass="AnnualRecordCell" customModule="SPHTechnicalTask" customModuleProvider="target">
                                         <rect key="frame" x="14" y="0.0" width="386" height="190"/>
@@ -152,6 +157,7 @@
                     </view>
                     <navigationItem key="navigationItem" id="zZg-1v-Qfa"/>
                     <connections>
+                        <outlet property="activityIndicator" destination="hQt-57-n6P" id="ZeC-Hi-6bo"/>
                         <outlet property="dataRecordCollectionView" destination="ris-LX-8Mk" id="hrh-wU-pjG"/>
                     </connections>
                 </viewController>

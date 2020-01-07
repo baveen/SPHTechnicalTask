@@ -10,6 +10,7 @@ import UIKit
 
 class ViewController: UIViewController {
     
+    @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
     let annualCellIdentifier = "AnnualRecordCellIdentifier"
     let recordCellIdentifier = "QuarterCellIdentifier"
     var annualRecords: [AnnualRecord] = []
@@ -24,17 +25,19 @@ class ViewController: UIViewController {
         self.title = "Data Usage from 2008 - 2018"
         
         setupCollectionView()
-        
+        activityIndicator.startAnimating()
         DispatchQueue.global(qos: .background).async {
             UsageViewModel().getDataUsage(offset: 100) { (response, error) in
                 if error != nil {
                     DispatchQueue.main.async {
+                        self.activityIndicator.stopAnimating()
                         self.showAlert(message: error!)
                     }
                 } else {
                   if let data = response {
                       self.annualRecords = data
                       DispatchQueue.main.async {
+                        self.activityIndicator.stopAnimating()
                           self.dataRecordCollectionView.reloadData()
                       }
                   }
