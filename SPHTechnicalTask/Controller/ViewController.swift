@@ -25,25 +25,7 @@ class ViewController: UIViewController {
         self.title = "Data Usage from 2008 - 2018"
         
         setupCollectionView()
-        activityIndicator.startAnimating()
-        DispatchQueue.global(qos: .background).async {
-            UsageViewModel().getDataUsage(offset: 100) { (response, error) in
-                if error != nil {
-                    DispatchQueue.main.async {
-                        self.activityIndicator.stopAnimating()
-                        self.showAlert(message: error!)
-                    }
-                } else {
-                  if let data = response {
-                      self.annualRecords = data
-                      DispatchQueue.main.async {
-                        self.activityIndicator.stopAnimating()
-                          self.dataRecordCollectionView.reloadData()
-                      }
-                  }
-                }
-            }
-        }
+        loadData()
     }
     
     private func setupCollectionView() {
@@ -62,6 +44,26 @@ class ViewController: UIViewController {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
         self.present(alert, animated: true, completion: nil)
+    }
+    
+    func loadData() {
+        activityIndicator.startAnimating()
+        DispatchQueue.global(qos: .background).async {
+            self.viewModel.getDataUsage() { (response, error) in
+                DispatchQueue.main.async {
+                    if error != nil {
+                        self.activityIndicator.stopAnimating()
+                        self.showAlert(message: error!)
+                    } else if let data = response, data.count > 0 {
+                        self.annualRecords = data
+                        self.activityIndicator.stopAnimating()
+                        self.dataRecordCollectionView.reloadData()
+                    } else {
+                        self.activityIndicator.stopAnimating()
+                    }
+                }
+            }
+        }
     }
 
 }

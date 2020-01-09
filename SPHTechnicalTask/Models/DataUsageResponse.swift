@@ -23,6 +23,25 @@ struct UsageResult: Codable {
     let links: Links?
     let limit: Int?
     let total: Int?
+    
+    enum CodingKeys: String, CodingKey {
+        case resourceID = "resource_id"
+        case fields = "fields"
+        case records = "records"
+        case links = "_links"
+        case limit = "limit"
+        case total = "total"
+    }
+       
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        resourceID = try values.decodeIfPresent(String.self, forKey: .resourceID)
+        fields = try values.decodeIfPresent([Field].self, forKey: .fields)
+        records = try values.decodeIfPresent([Record].self, forKey: .records)
+        links = try values.decodeIfPresent(Links.self, forKey: .links)
+        limit = try values.decodeIfPresent(Int.self, forKey: .limit)
+        total = try values.decodeIfPresent(Int.self, forKey: .total)
+    }
 }
 
 // MARK: - Field

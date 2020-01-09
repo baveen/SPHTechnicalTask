@@ -11,19 +11,24 @@ import Foundation
 class UsageViewModel {
     let searchPath = "/api/action/datastore_search?resource_id=a807b7ab-6cad-4aa6-87d0-e283a7353a0f"
     var nextUrl: String!
+    var numberOfRecords: Int? = 0
     let pageLimit = 100
-    
+    var isFetchingIsProgressing: Bool = false
     init() {
         nextUrl = searchPath+"&limit=\(pageLimit)"
     }
     
-    func getDataUsage(offset: Int, callBack:@escaping (Array<AnnualRecord>?, _ error: String?) -> Void) {
+    func getDataUsage(callBack:@escaping (Array<AnnualRecord>?, _ error: String?) -> Void) {
+        isFetchingIsProgressing = true
         APIClient.shared.fetchUsedMobileData(nextUrl: nextUrl) { (response, error) in
             if let success = response?.success, success {
                 let downloadedRecords = self.getAnnualRecordsArray(response: response)
                 self.nextUrl = response?.result?.links?.next
+                self.numberOfRecords = response?.result?.total
+                self.isFetchingIsProgressing = false
                 callBack(downloadedRecords,nil)
             } else {
+                self.isFetchingIsProgressing = false
                 callBack(nil,error)
             }
         }
