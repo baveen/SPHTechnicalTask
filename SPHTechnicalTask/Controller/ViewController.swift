@@ -8,15 +8,11 @@
 
 import UIKit
 
-class ViewController: UIViewController {
+class ViewController: UITableViewController {
     
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
-    let annualCellIdentifier = "AnnualRecordCellIdentifier"
     let recordCellIdentifier = "QuarterCellIdentifier"
     var annualRecords: [AnnualRecord] = []
-    var currentlyLoadedAnnualRecord: AnnualRecord!
-    let tableViewCellHeight: CGFloat = 45.0
-    let headerStackHeight: CGFloat = 50.0
 
     @IBOutlet weak var dataRecordCollectionView: UICollectionView!
      let viewModel = UsageViewModel(apiClient: APIClient())
@@ -24,20 +20,10 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         self.title = "Data Usage from 2008 - 2018"
-        setupCollectionView()
+        self.tableView.delegate = self
+        self.tableView.dataSource = self
+        self.tableView.register(SectionHeaderView.self, forHeaderFooterViewReuseIdentifier: SectionHeaderView.reuseIdentifier)
         loadData()
-    }
-    
-    private func setupCollectionView() {
-        let flowLayout = UICollectionViewFlowLayout()
-        flowLayout.scrollDirection = .vertical
-        flowLayout.minimumLineSpacing = 10
-        flowLayout.minimumInteritemSpacing = 10
-        dataRecordCollectionView.collectionViewLayout = flowLayout
-        dataRecordCollectionView.alwaysBounceVertical = true
-        dataRecordCollectionView.dataSource = self
-        dataRecordCollectionView.delegate = self
-        dataRecordCollectionView.backgroundColor = .lightGray
     }
        
     func showAlert(title: String = "Error!", message: String) {
@@ -50,92 +36,73 @@ class ViewController: UIViewController {
         if viewModel.numberOfRecords == nil {
             return
         }
-        self.showActivityIndicator()
+        //self.showActivityIndicator()
         DispatchQueue.global(qos: .background).async {
             self.viewModel.getDataUsage() { (response, error) in
                 DispatchQueue.main.async {
                     if error != nil {
-                        self.hideActivityIndicator()
+                        //self.hideActivityIndicator()
                         self.showAlert(message: error!)
                     } else if let data = response, data.count > 0 {
                         self.annualRecords = data
-                        self.dataRecordCollectionView.reloadData()
-                        self.hideActivityIndicator()
+                        self.tableView.reloadData()
+                        //self.hideActivityIndicator()
                     } else {
-                        self.hideActivityIndicator()
+                        //self.hideActivityIndicator()
                     }
                 }
             }
         }
     }
     
-    func showActivityIndicator() {
-        activityIndicator.isHidden = false
-        activityIndicator.startAnimating()
-    }
+//    func showActivityIndicator() {
+//        activityIndicator.isHidden = false
+//        activityIndicator.startAnimating()
+//    }
     
-    func hideActivityIndicator() {
-        activityIndicator.isHidden = true
-        activityIndicator.stopAnimating()
-    }
+//    func hideActivityIndicator() {
+//        activityIndicator.isHidden = true
+//        activityIndicator.stopAnimating()
+//    }
 
 }
 
-extension ViewController: UICollectionViewDelegate, UICollectionViewDataSource {
-    
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+extension ViewController {
+    override func numberOfSections(in tableView: UITableView) -> Int {
         return self.annualRecords.count
     }
     
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: annualCellIdentifier, for: indexPath) as! AnnualRecordCell
-        cell.clipsToBounds = true
-        cell.layer.cornerRadius = 15.0
-        cell.currentLoadingIndex = indexPath.item
-        let cellObject = self.annualRecords[indexPath.item]
-        cell.delegate = self
-        cell.updateCell(object: cellObject)
-        cell.quartersTableView.isScrollEnabled = false
-        cell.setTableViewDataSourceDelegate(dataSourceDelegate: self, record: cellObject)
-        return cell
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return self.annualRecords[section].quarters.count
     }
     
-}
-
-extension ViewController: UICollectionViewDelegateFlowLayout {
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        return CGSize(width: self.view.bounds.width - 20, height: (4 * tableViewCellHeight) + headerStackHeight)
-    }
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
-        return UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
-    }
-}
-
-extension ViewController: UITableViewDelegate, UITableViewDataSource {
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return self.currentlyLoadedAnnualRecord.quarters.count
-    }
-    
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: recordCellIdentifier, for: indexPath) as! QuarterTableViewCell
         cell.delegate = self
-        let cellRecord = self.currentlyLoadedAnnualRecord.quarters[indexPath.row]
-        cell.updateQuatersCell(record: cellRecord, parentRecord: self.currentlyLoadedAnnualRecord)
+        let annualRecord = self.annualRecords[indexPath.section]
+        let cellRecord = annualRecord.quarters[indexPath.row]
+        cell.updateQuatersCell(record: cellRecord, parentRecord: annualRecord)
         return cell
     }
     
-    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return tableViewCellHeight
+    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 80
     }
+    
+    override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        guard let view = tableView.dequeueReusableHeaderFooterView(withIdentifier: SectionHeaderView.reuseIdentifier) as? SectionHeaderView else {
+            return nil
+        }
+        view.updateLabels(item: self.annualRecords[section])
+        return view
+    }
+    
+    override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        return 46
+    }
+        
 }
 
-
-
-extension ViewController: RecordCellDelegate {
-    func reloadQuartersTableView(_ annualRecord: AnnualRecord) {
-        currentlyLoadedAnnualRecord = annualRecord
-    }
-}
 
 extension ViewController: QuarterTableViewCellDelegate {
     func lowVolumeButtonClicked() {
