@@ -16,14 +16,14 @@ class ViewController: UIViewController {
     var annualRecords: [AnnualRecord] = []
     var currentlyLoadedAnnualRecord: AnnualRecord!
     let tableViewCellHeight: CGFloat = 45.0
+    let headerStackHeight: CGFloat = 50.0
 
     @IBOutlet weak var dataRecordCollectionView: UICollectionView!
-     let viewModel = UsageViewModel()
+     let viewModel = UsageViewModel(apiClient: APIClient())
     
     override func viewDidLoad() {
         super.viewDidLoad()
         self.title = "Data Usage from 2008 - 2018"
-        
         setupCollectionView()
         loadData()
     }
@@ -34,12 +34,12 @@ class ViewController: UIViewController {
         flowLayout.minimumLineSpacing = 10
         flowLayout.minimumInteritemSpacing = 10
         dataRecordCollectionView.collectionViewLayout = flowLayout
-        
+        dataRecordCollectionView.alwaysBounceVertical = true
         dataRecordCollectionView.dataSource = self
         dataRecordCollectionView.delegate = self
         dataRecordCollectionView.backgroundColor = .lightGray
     }
-               
+       
     func showAlert(title: String = "Error!", message: String) {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
@@ -47,23 +47,36 @@ class ViewController: UIViewController {
     }
     
     func loadData() {
-        activityIndicator.startAnimating()
+        if viewModel.numberOfRecords == nil {
+            return
+        }
+        self.showActivityIndicator()
         DispatchQueue.global(qos: .background).async {
             self.viewModel.getDataUsage() { (response, error) in
                 DispatchQueue.main.async {
                     if error != nil {
-                        self.activityIndicator.stopAnimating()
+                        self.hideActivityIndicator()
                         self.showAlert(message: error!)
                     } else if let data = response, data.count > 0 {
                         self.annualRecords = data
-                        self.activityIndicator.stopAnimating()
                         self.dataRecordCollectionView.reloadData()
+                        self.hideActivityIndicator()
                     } else {
-                        self.activityIndicator.stopAnimating()
+                        self.hideActivityIndicator()
                     }
                 }
             }
         }
+    }
+    
+    func showActivityIndicator() {
+        activityIndicator.isHidden = false
+        activityIndicator.startAnimating()
+    }
+    
+    func hideActivityIndicator() {
+        activityIndicator.isHidden = true
+        activityIndicator.stopAnimating()
     }
 
 }
@@ -80,7 +93,7 @@ extension ViewController: UICollectionViewDelegate, UICollectionViewDataSource {
         cell.layer.cornerRadius = 15.0
         cell.currentLoadingIndex = indexPath.item
         let cellObject = self.annualRecords[indexPath.item]
-        cell.delegae = self
+        cell.delegate = self
         cell.updateCell(object: cellObject)
         cell.quartersTableView.isScrollEnabled = false
         cell.setTableViewDataSourceDelegate(dataSourceDelegate: self, record: cellObject)
@@ -91,16 +104,10 @@ extension ViewController: UICollectionViewDelegate, UICollectionViewDataSource {
 
 extension ViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        return CGSize(width: self.view.bounds.width - 20, height: 230)
+        return CGSize(width: self.view.bounds.width - 20, height: (4 * tableViewCellHeight) + headerStackHeight)
     }
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
         return UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
-    }
-}
-
-extension ViewController: RecordCellDelegate {
-    func reloadQuartersTableView(_ annualRecord: AnnualRecord) {
-        currentlyLoadedAnnualRecord = annualRecord
     }
 }
 
@@ -111,10 +118,27 @@ extension ViewController: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: recordCellIdentifier, for: indexPath) as! QuarterTableViewCell
+        cell.delegate = self
         let cellRecord = self.currentlyLoadedAnnualRecord.quarters[indexPath.row]
         cell.updateQuatersCell(record: cellRecord, parentRecord: self.currentlyLoadedAnnualRecord)
         return cell
     }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return tableViewCellHeight
+    }
 }
 
 
+
+extension ViewController: RecordCellDelegate {
+    func reloadQuartersTableView(_ annualRecord: AnnualRecord) {
+        currentlyLoadedAnnualRecord = annualRecord
+    }
+}
+
+extension ViewController: QuarterTableViewCellDelegate {
+    func lowVolumeButtonClicked() {
+        self.showAlert(title: "Lowest Data Consumption", message: "This quarter is a lowest data consumption for the year")
+    }
+}

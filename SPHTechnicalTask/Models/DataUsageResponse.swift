@@ -10,8 +10,8 @@ import Foundation
 
 // MARK: - DataUsageApiResponse
 struct DataUsageApiResponse: Codable {
-    let help: String!
-    let success: Bool!
+    let help: String?
+    let success: Bool?
     let result: UsageResult?
 }
 

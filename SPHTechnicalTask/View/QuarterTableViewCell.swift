@@ -8,11 +8,16 @@
 
 import UIKit
 
+protocol QuarterTableViewCellDelegate: class {
+    func lowVolumeButtonClicked()
+}
+
 class QuarterTableViewCell: UITableViewCell {
 
-    @IBOutlet weak var lowVolumeIndicator: UIImageView!
+    @IBOutlet weak var lowVolumeIndicatorButton: UIButton!
     @IBOutlet weak var quarterLabel: UILabel!
     @IBOutlet weak var volumeLabel: UILabel!
+    weak var delegate: QuarterTableViewCellDelegate!
     override func awakeFromNib() {
         super.awakeFromNib()
         // Initialization code
@@ -29,11 +34,15 @@ class QuarterTableViewCell: UITableViewCell {
         if let volume = record.dataVolume {
             self.volumeLabel.text = "Used Data: \(volume)"
             if volume == parentRecord.lowVolumeValue {
-                self.lowVolumeIndicator.isHidden = false
+                self.lowVolumeIndicatorButton.isHidden = false
             } else {
-                self.lowVolumeIndicator.isHidden = true
+                self.lowVolumeIndicatorButton.isHidden = true
             }
         }
     }
-
+    
+    @IBAction func lowVolumeIndicatorClicked(_ sender: Any) {
+        self.delegate.lowVolumeButtonClicked()
+    }
+    
 }

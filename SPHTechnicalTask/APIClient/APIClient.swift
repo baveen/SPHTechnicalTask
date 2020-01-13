@@ -8,6 +8,10 @@
 
 import Foundation
 
+protocol APIClientProtocol {
+    func fetchUsedMobileData(nextUrl: String, callBack: @escaping ApiResponseCallBack)
+}
+
 typealias ApiResponseCallBack = ((DataUsageApiResponse?, _ error: String?) -> Void)
 
 enum NetworkResponse: String {
@@ -27,39 +31,28 @@ enum Result<String>{
 
 class APIClient {
     let baseUrl = "https://data.gov.sg"
-    static let shared = APIClient()
-    private init() { }
-        
-    func fetchUsedMobileData(nextUrl: String, callBack: @escaping ApiResponseCallBack) {
-        let url = baseUrl+nextUrl
-        let request = NSMutableURLRequest(url: NSURL(string: url)! as URL,
-                                          cachePolicy: .useProtocolCachePolicy,
-                                          timeoutInterval: 60.0)
-        request.httpMethod = "GET"
-    
+    func execute(request: URLRequest, handler: @escaping ApiResponseCallBack) {
         let session = URLSession.shared
         let dataTask = session.dataTask(with: request as URLRequest, completionHandler: {[weak self] (data, urlResponse, error) in
-            
             if error != nil {
-                callBack(nil, "Please check your network connection.")
+                handler(nil, "Please check your network connection.")
                 return
             }
-        
             if let response = urlResponse as? HTTPURLResponse, let result = self?.handleNetworkResponse(response) {
                 switch result {
                 case .success:
                     guard let responseData = data else {
-                        callBack(nil, NetworkResponse.noData.rawValue)
+                        handler(nil, NetworkResponse.noData.rawValue)
                         return
                     }
                     do {
                         let apiResponse = try JSONDecoder().decode(DataUsageApiResponse.self, from: responseData)
-                        callBack(apiResponse,nil)
+                        handler(apiResponse,nil)
                     }catch {
-                        callBack(nil, NetworkResponse.unableToDecode.rawValue)
+                        handler(nil, NetworkResponse.unableToDecode.rawValue)
                     }
                 case .failure(let networkFailureError):
-                    callBack(nil, networkFailureError)
+                    handler(nil, networkFailureError)
                 }
             }
             
@@ -82,4 +75,18 @@ class APIClient {
         }
     }
     
+}
+
+extension APIClient: APIClientProtocol {
+    func fetchUsedMobileData(nextUrl: String, callBack: @escaping ApiResponseCallBack) {
+        let url = baseUrl+nextUrl
+        let request = NSMutableURLRequest(url: NSURL(string: url)! as URL,
+                                          cachePolicy: .useProtocolCachePolicy,
+                                          timeoutInterval: 60.0)
+        request.httpMethod = "GET"
+        
+        self.execute(request: request as URLRequest) { (dataResponse, errorString) in
+            callBack(dataResponse, errorString)
+        }
+    }
 }

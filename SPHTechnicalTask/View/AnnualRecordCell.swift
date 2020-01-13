@@ -16,7 +16,7 @@ class AnnualRecordCell: UICollectionViewCell {
     @IBOutlet weak var yearLabel: UILabel!
     @IBOutlet weak var totalVolumeLabel: UILabel!
     @IBOutlet weak var quartersTableView: UITableView!
-    weak var delegae: RecordCellDelegate!
+    weak var delegate: RecordCellDelegate!
     var currentLoadingIndex = 0
     
     func updateCell(object: AnnualRecord) {
@@ -29,7 +29,7 @@ class AnnualRecordCell: UICollectionViewCell {
         quartersTableView.delegate = dataSourceDelegate
         quartersTableView.dataSource = dataSourceDelegate
         quartersTableView.tag = currentLoadingIndex
-        self.delegae.reloadQuartersTableView(record)
+        self.delegate.reloadQuartersTableView(record)
         quartersTableView.reloadData()
     }
     

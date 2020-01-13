@@ -13,22 +13,20 @@ class UsageViewModel {
     var nextUrl: String!
     var numberOfRecords: Int? = 0
     let pageLimit = 100
-    var isFetchingIsProgressing: Bool = false
-    init() {
+    var client: APIClientProtocol!
+    init(apiClient: APIClientProtocol) {
         nextUrl = searchPath+"&limit=\(pageLimit)"
+        client = apiClient
     }
     
-    func getDataUsage(callBack:@escaping (Array<AnnualRecord>?, _ error: String?) -> Void) {
-        isFetchingIsProgressing = true
-        APIClient.shared.fetchUsedMobileData(nextUrl: nextUrl) { (response, error) in
+    func getDataUsage(callBack:@escaping ([AnnualRecord]?, _ error: String?) -> Void) {
+        client.fetchUsedMobileData(nextUrl: nextUrl) { (response, error) in
             if let success = response?.success, success {
                 let downloadedRecords = self.getAnnualRecordsArray(response: response)
                 self.nextUrl = response?.result?.links?.next
                 self.numberOfRecords = response?.result?.total
-                self.isFetchingIsProgressing = false
                 callBack(downloadedRecords,nil)
             } else {
-                self.isFetchingIsProgressing = false
                 callBack(nil,error)
             }
         }
