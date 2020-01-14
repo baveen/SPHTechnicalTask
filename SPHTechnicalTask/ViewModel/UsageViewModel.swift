@@ -14,7 +14,7 @@ class UsageViewModel {
     var numberOfRecords: Int? = 0
     let pageLimit = 30
     var client: APIClientProtocol!
-    var annualDictionary = [String: AnnualRecord]()
+    var annualRecordsDictionary = [String: AnnualRecord]()
     init(apiClient: APIClientProtocol) {
         nextUrl = searchPath+"&limit=\(pageLimit)"
         client = apiClient
@@ -40,14 +40,14 @@ class UsageViewModel {
             let sortedKeys =  recordsByYear.keys.sorted{ $0! < $1!}
             sortedKeys.forEach { (key) in
                 let annualRecord = AnnualRecord(records:recordsByYear[key]!, yearObj: key!)
-                if annualDictionary[key!] == nil {
-                    annualDictionary.updateValue(annualRecord, forKey: key!)
-                } else if annualDictionary[key!] != nil, let qrts = annualDictionary[key!]?.quarters, qrts.count < 4  {
-                    let existingObject  = annualDictionary[key!]
+                if annualRecordsDictionary[key!] == nil {
+                    annualRecordsDictionary.updateValue(annualRecord, forKey: key!)
+                } else if annualRecordsDictionary[key!] != nil, let qrts = annualRecordsDictionary[key!]?.quarters, qrts.count < 4  {
+                    let existingObject  = annualRecordsDictionary[key!]
                     var newQuartersArray = existingObject?.quarters
                     newQuartersArray?.append(contentsOf: annualRecord.quarters)
                     let newAnnualRecord = AnnualRecord(records: newQuartersArray!, yearObj: key!)
-                    annualDictionary.updateValue(newAnnualRecord, forKey: key!)
+                    annualRecordsDictionary.updateValue(newAnnualRecord, forKey: key!)
                 }
             }
         }
@@ -56,11 +56,11 @@ class UsageViewModel {
     
     func processDataArray() -> [AnnualRecord] {
         var dataArray: [AnnualRecord] = []
-        let sortedKeys =  annualDictionary.keys.sorted{ $0 < $1}
+        let sortedKeys =  annualRecordsDictionary.keys.sorted{ $0 < $1}
         sortedKeys.forEach { (key) in
             let keyIntVal = Int(key)!
             if keyIntVal >= 2008, keyIntVal <= 2018 {
-                let annualRecord = annualDictionary[key]!
+                let annualRecord = annualRecordsDictionary[key]!
                 dataArray.append(annualRecord)
             }
         }

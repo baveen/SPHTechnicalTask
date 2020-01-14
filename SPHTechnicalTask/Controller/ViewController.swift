@@ -10,7 +10,6 @@ import UIKit
 
 class ViewController: UITableViewController {
     var activityIndicator: UIActivityIndicatorView!
-    var annualRecords: [AnnualRecord] = []
     var dataSource: TableViewDataSource!
 
     @IBOutlet weak var dataRecordCollectionView: UICollectionView!
@@ -69,7 +68,6 @@ class ViewController: UITableViewController {
     
     func hideActivityIndicator() {
         activityIndicator.isHidden = true
-        self.tableView.isHidden = false
         activityIndicator.stopAnimating()
     }
 
