@@ -32,7 +32,10 @@ class ViewController: UITableViewController {
        
     func showAlert(title: String = "Error!", message: String) {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+        alert.addAction(UIAlertAction(title: "Cancel", style: .default, handler: nil))
+        alert.addAction(UIAlertAction(title: "Retry", style: .default, handler: { _ in
+            self.loadData()
+        }))
         self.present(alert, animated: true, completion: nil)
     }
     
