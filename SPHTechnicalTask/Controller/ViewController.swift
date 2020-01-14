@@ -9,8 +9,7 @@
 import UIKit
 
 class ViewController: UITableViewController {
-    
-    @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
+    var activityIndicator: UIActivityIndicatorView!
     let recordCellIdentifier = "QuarterCellIdentifier"
     var annualRecords: [AnnualRecord] = []
 
@@ -20,6 +19,12 @@ class ViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         self.title = "Data Usage from 2008 - 2018"
+        let activityIndicatorView = UIActivityIndicatorView(style: .gray)
+        self.tableView.backgroundView = activityIndicatorView
+        self.tableView.separatorInset = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+        self.tableView.separatorInsetReference = .fromAutomaticInsets
+        self.activityIndicator = activityIndicatorView
+        
         self.tableView.delegate = self
         self.tableView.dataSource = self
         self.tableView.register(SectionHeaderView.self, forHeaderFooterViewReuseIdentifier: SectionHeaderView.reuseIdentifier)
@@ -32,38 +37,47 @@ class ViewController: UITableViewController {
         self.present(alert, animated: true, completion: nil)
     }
     
+    override func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        let isReachingEnd = scrollView.contentOffset.y >= 0
+            && scrollView.contentOffset.y >= (scrollView.contentSize.height - scrollView.frame.size.height)
+        if isReachingEnd {
+            self.loadData()
+        }
+    }
+    
     func loadData() {
         if viewModel.numberOfRecords == nil {
             return
         }
-        //self.showActivityIndicator()
+        self.showActivityIndicator()
         DispatchQueue.global(qos: .background).async {
             self.viewModel.getDataUsage() { (response, error) in
                 DispatchQueue.main.async {
                     if error != nil {
-                        //self.hideActivityIndicator()
+                        self.hideActivityIndicator()
                         self.showAlert(message: error!)
                     } else if let data = response, data.count > 0 {
                         self.annualRecords = data
                         self.tableView.reloadData()
-                        //self.hideActivityIndicator()
+                        self.hideActivityIndicator()
                     } else {
-                        //self.hideActivityIndicator()
+                        self.hideActivityIndicator()
                     }
                 }
             }
         }
     }
     
-//    func showActivityIndicator() {
-//        activityIndicator.isHidden = false
-//        activityIndicator.startAnimating()
-//    }
+    func showActivityIndicator() {
+        activityIndicator.isHidden = false
+        activityIndicator.startAnimating()
+    }
     
-//    func hideActivityIndicator() {
-//        activityIndicator.isHidden = true
-//        activityIndicator.stopAnimating()
-//    }
+    func hideActivityIndicator() {
+        activityIndicator.isHidden = true
+        self.tableView.isHidden = false
+        activityIndicator.stopAnimating()
+    }
 
 }
 
@@ -86,7 +100,7 @@ extension ViewController {
     }
     
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 80
+        return QuarterTableViewCell.cellHeight
     }
     
     override func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
@@ -98,7 +112,7 @@ extension ViewController {
     }
     
     override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        return 46
+        return SectionHeaderView.headerHeight
     }
         
 }
@@ -106,6 +120,6 @@ extension ViewController {
 
 extension ViewController: QuarterTableViewCellDelegate {
     func lowVolumeButtonClicked() {
-        self.showAlert(title: "Lowest Data Consumption", message: "This quarter is a lowest data consumption for the year")
+        self.showAlert(title: "Lowest Data Consumption", message: "This quarter has the lowest data consumption for the year.")
     }
 }

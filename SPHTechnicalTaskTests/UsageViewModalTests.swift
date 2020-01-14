@@ -40,7 +40,7 @@ class UsageViewModalTests: XCTestCase {
 
     func testGetAnnualRecordArray() {
         let resp = (viewModel.client as! MockAPIClient).mockResponse()
-        XCTAssertNotNil(resp)
+        XCTAssertNotNil(viewModel.getAnnualRecordsArray(response: resp))
     }
             
 }

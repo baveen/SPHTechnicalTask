@@ -10,6 +10,8 @@ import UIKit
 
 class SectionHeaderView: UITableViewHeaderFooterView {
     static let reuseIdentifier = "sectionHeaderView"
+    static let headerHeight: CGFloat = 46
+
     var yearLabel: UILabel!
     var usageLabel: UILabel!
     
@@ -34,6 +36,7 @@ class SectionHeaderView: UITableViewHeaderFooterView {
         usageLabel = UILabel()
         self.addSubview(yearLabel)
         self.addSubview(usageLabel)
+        
         yearLabel.translatesAutoresizingMaskIntoConstraints = false
         usageLabel.translatesAutoresizingMaskIntoConstraints = false
         yearLabel.topAnchor.constraint(equalTo: self.topAnchor, constant: 8).isActive = true
