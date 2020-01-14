@@ -14,6 +14,8 @@ protocol QuarterTableViewCellDelegate: class {
 
 class QuarterTableViewCell: UITableViewCell {
     static let cellHeight: CGFloat = 80
+    static let recordCellIdentifier = "QuarterCellIdentifier"
+    
     @IBOutlet weak var lowVolumeIndicatorButton: UIButton!
     @IBOutlet weak var quarterLabel: UILabel!
     @IBOutlet weak var volumeLabel: UILabel!

@@ -10,6 +10,7 @@
 import XCTest
 
 class APIClientTests: XCTestCase {
+    
     override func setUp() {
         // Put setup code here. This method is called before the invocation of each test method in the class.
         super.setUp()
@@ -35,11 +36,20 @@ class APIClientTests: XCTestCase {
         self.waitForExpectations(timeout: 10, handler: nil)
     }
     
-    
-
 }
 
 class MockAPIClient {
+    func getAnnualRecords() -> [AnnualRecord] {
+        var dataArray: [AnnualRecord] = []
+        let result = mockResponse()?.result
+        let recordsByYear = Dictionary(grouping: (result?.records)!, by: {$0.quarter!.components(separatedBy: "-").first})
+        recordsByYear.keys.forEach { (key) in
+            let annualRecord = AnnualRecord(records:recordsByYear[key]!, yearObj: key!)
+            dataArray.append(annualRecord)
+        }
+        return dataArray
+    }
+    
     func mockResponse() -> DataUsageApiResponse? {
         if let path = Bundle.main.path(forResource: "MockResponse", ofType: "json") {
             do {
