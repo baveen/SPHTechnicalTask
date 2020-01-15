@@ -22,11 +22,11 @@ class ViewControllerTests: XCTestCase {
         super.tearDown()
     }
     
-    func testMovieViewControllerNotNil(){
+    func testControllerNotNil(){
         XCTAssertNotNil(controller)
     }
        
-    func testMovieViewControllerTableViewNotNil(){
+    func testControllerTableViewNotNil(){
         XCTAssertNotNil(controller.tableView)
     }
 
